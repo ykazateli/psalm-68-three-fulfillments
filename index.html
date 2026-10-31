@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Псалом 68: Три исполнения | Указатели</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Comic Neue', 'Comic Sans MS', sans-serif;
+            background: #b48a62;
+            background-image: radial-gradient(circle at 10% 20%, rgba(218, 178, 115, 0.08) 0%, rgba(0,0,0,0) 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 900px;
+            width: 100%;
+            background: #fff6e8;
+            border-radius: 48px;
+            box-shadow: 0 20px 35px rgba(100, 70, 30, 0.15);
+            padding: 30px 30px 40px;
+            border: 1px solid #f0dbb4;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header .studio-link {
+            display: inline-block;
+            font-size: 1rem;
+            color: #4A90D9;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid #4A90D9;
+            padding-bottom: 2px;
+            transition: 0.2s;
+        }
+
+        .header .studio-link:hover {
+            color: #2c6aa0;
+            border-bottom-color: #2c6aa0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #4a3520;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            font-size: 1rem;
+            color: #7a5a3a;
+            font-weight: 300;
+            line-height: 1.5;
+        }
+
+        .screen {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .screen h2 {
+            font-size: 1.5rem;
+            color: #4a3520;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .character-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .character-wrapper img {
+            width: 200px;
+            height: auto;
+            display: block;
+        }
+
+        .speech-bubble {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px 25px;
+            border: 1px solid #e6dacb;
+            position: relative;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #3e2c1a;
+            text-align: left;
+        }
+
+        .speech-bubble .name {
+            font-weight: 700;
+            color: #b48a62;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* ===== ИГРОВОЕ ПОЛЕ (сопоставление) ===== */
+        .match-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .match-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .match-column h3 {
+            font-size: 1rem;
+            color: #7a5a3a;
+            text-align: center;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .match-card {
+            background: #ffffff;
+            border: 2px solid #d5c4b0;
+            border-radius: 16px;
+            padding: 14px 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #3e2c1a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .match-card:hover {
+            border-color: #b48a62;
+            transform: translateY(-2px);
+        }
+
+        .match-card.selected {
+            border-color: #b48a62;
+            background: #f4ede4;
+            transform: scale(1.03);
+            box-shadow: 0 0 12px rgba(180, 138, 98, 0.4);
+        }
+
+        .match-card.matched {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        .match-card.matched:hover {
+            transform: none;
+        }
+
+        .match-card.wrong {
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+        }
+
+        /* Таблица */
+        .nt-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .nt-table th {
+            background: #b48a62;
+            color: #fff;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .nt-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0e6d8;
+            color: #3e2c1a;
+            vertical-align: top;
+        }
+
+        .nt-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .nt-table .word-cell {
+            font-weight: 700;
+            color: #b48a62;
+        }
+
+        /* Размышление */
+        .question-box {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #e6dacb;
+            margin-bottom: 20px;
+        }
+
+        .question-box .q {
+            font-weight: 600;
+            color: #4a3520;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+
+        .question-box .answer {
+            display: none;
+            margin-top: 10px;
+            padding: 14px 16px;
+            background: #f4ede4;
+            border-radius: 12px;
+            color: #3e2c1a;
+            line-height: 1.6;
+            border-left: 3px solid #b48a62;
+        }
+
+        .question-box .answer.show {
+            display: block;
+        }
+
+        .reveal-btn {
+            background: #b48a62;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+
+        .reveal-btn:hover {
+            background: #9a704a;
+            transform: translateY(-2px);
+        }
+
+        /* Вывод */
+        .conclusion-box {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #e6dacb;
+            margin-bottom: 20px;
+        }
+
+        .conclusion-box p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #3e2c1a;
+            margin-bottom: 10px;
+        }
+
+        .conclusion-box .final-verse {
+            font-style: italic;
+            color: #b48a62;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f4ede4;
+            border-radius: 12px;
+            font-size: 0.95rem;
+        }
+
+        /* Кнопки */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons button {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        button {
+            background: #b48a62;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #9a704a;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #d5c4b0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.secondary {
+            background: #e6dacb;
+            color: #4a3520;
+        }
+
+        button.secondary:hover {
+            background: #d5c4b0;
+        }
+
+        /* Футер */
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid #e6dacb;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .footer .studio-link {
+            color: #4A90D9;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #4A90D9;
+            padding-bottom: 2px;
+        }
+
+        .footer .small-note {
+            display: block;
+            margin-top: 6px;
+            color: #a58d7a;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .app-container { padding: 20px 15px; }
+            .header h1 { font-size: 1.6rem; }
+            .character-wrapper img { width: 150px; }
+            .speech-bubble { font-size: 1rem; padding: 15px 18px; }
+            .match-grid { grid-template-columns: 1fr; gap: 10px; }
+            .match-card { font-size: 0.85rem; padding: 10px; min-height: 60px; }
+            .nt-table { font-size: 0.8rem; }
+            .nt-table th, .nt-table td { padding: 8px 6px; }
+            .nav-buttons { flex-direction: column; }
+            button { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ШАПКА -->
+        <div class="header">
+            <a href="https://vk.com/ykazateli_of_christ" target="_blank" class="studio-link">
+                🕯️ Библейская студия анимации «Указатели»
+            </a>
+            <h1>📖 Псалом 68: Три исполнения</h1>
+            <p class="subtitle">Христос в Псалмах — урок 6</p>
+        </div>
+
+        <!-- ЭКРАН 1: ВСТУПЛЕНИЕ -->
+        <div id="screen1" class="screen active">
+            <div class="character-wrapper">
+                <img src="kristina-bible.gif" alt="Кристина с Библией">
+            </div>
+            <div class="speech-bubble">
+                <span class="name">Кристина:</span>
+                Сегодня — <strong>Псалом 68</strong>. Это один из самых насыщенных мессианских псалмов. В нём есть три пророчества, которые исполнились в разных событиях Евангелия. Давай найдём их и увидим, как точно Бог предсказал всё заранее.
+            </div>
+            <div style="text-align:center;">
+                <button onclick="goToStep(2)">📖 Начать</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 2: СОПОСТАВЛЕНИЕ -->
+        <div id="screen2" class="screen">
+            <h2>🔗 Сопоставление</h2>
+
+            <div class="character-wrapper">
+                <img src="kristina-cards.gif" alt="Кристина с карточками">
+            </div>
+            <div class="speech-bubble">
+                <span class="name">Кристина:</span>
+                🔗 Найди пару: стих из Псалма и событие из Евангелия. Нажимай на стих, затем на событие — если пара верная, они закрасятся в зелёный.
+            </div>
+
+            <div class="match-grid">
+                <!-- Левая колонка: стихи -->
+                <div class="match-column">
+                    <h3>📜 Псалом 68</h3>
+                    <div class="match-card" data-id="1">«...ревность по доме Твоём снедает Меня» (ст. 10)</div>
+                    <div class="match-card" data-id="2">«...дали мне в пищу желчь, и в жажде моей напоили меня уксусом» (ст. 22)</div>
+                    <div class="match-card" data-id="3">«...да будет двор их пуст, и в жилищах их да не будет живущего» (ст. 26)</div>
+                </div>
+                <!-- Правая колонка: события -->
+                <div class="match-column">
+                    <h3>✝️ Евангелие</h3>
+                    <div class="match-card" data-id="2">Дали Ему пить уксуса на кресте (Ин. 19:28-29)</div>
+                    <div class="match-card" data-id="1">Изгнание торгующих из храма (Ин. 2:17)</div>
+                    <div class="match-card" data-id="3">Падение Иуды (Деян. 1:20)</div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="secondary" onclick="goToStep(1)">⬅️ Назад</button>
+                <button onclick="goToStep(3)" id="toStep3" disabled>➡️ Дальше</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 3: СВЯЗЬ С НОВЫМ ЗАВЕТОМ -->
+        <div id="screen3" class="screen">
+            <h2>🔗 Связь с Новым Заветом</h2>
+
+            <div class="character-wrapper">
+                <img src="kristina-holding.gif" alt="Кристина говорит">
+            </div>
+            <div class="speech-bubble">
+                <span class="name">Кристина:</span>
+                Отлично! Ты нашёл все пары. А теперь посмотри, как точно Псалом исполнился.
+            </div>
+
+            <table class="nt-table">
+                <thead>
+                    <tr>
+                        <th>Псалом 68</th>
+                        <th>Евангелие</th>
+                        <th>Что это значит</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="word-cell">«ревность по доме Твоём снедает Меня» (ст. 10)</td>
+                        <td>Ин. 2:17</td>
+                        <td>Ревность Христа о доме Божьем ведёт Его к кресту</td>
+                    </tr>
+                    <tr>
+                        <td class="word-cell">«дали мне в пищу желчь... напоили меня уксусом» (ст. 22)</td>
+                        <td>Ин. 19:28-29; Мф. 27:34</td>
+                        <td>Страдания Христа на кресте исполнили пророчество</td>
+                    </tr>
+                    <tr>
+                        <td class="word-cell">«да будет двор их пуст» (ст. 26)</td>
+                        <td>Деян. 1:20</td>
+                        <td>Пётр применил это к Иуде и его падению</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="nav-buttons">
+                <button class="secondary" onclick="goToStep(2)">⬅️ Назад</button>
+                <button onclick="goToStep(4)">➡️ Дальше</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 4: РАЗМЫШЛЕНИЕ -->
+        <div id="screen4" class="screen">
+            <h2>🤔 Размышление</h2>
+
+            <div class="character-wrapper">
+                <img src="kristina-bible.gif" alt="Кристина с Библией">
+            </div>
+            <div class="speech-bubble">
+                <span class="name">Кристина:</span>
+                Что ты чувствуешь, видя, как один псалом исполнился в таких разных событиях?
+            </div>
+
+            <div class="question-box">
+                <div class="q">💭 Подумай и ответь:</div>
+                <div class="answer" id="answerText">
+                    Бог видит всё заранее. Он предсказал и ревность Христа, и Его страдания, и даже падение того, кто Его предаст. Это значит, что <strong>Божье Слово всегда исполняется</strong> — и мы можем доверять Ему.
+                </div>
+                <button class="reveal-btn" onclick="toggleAnswer()">💡 Показать ответ</button>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="secondary" onclick="goToStep(3)">⬅️ Назад</button>
+                <button onclick="goToStep(5)">➡️ Дальше</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 5: ВЫВОД -->
+        <div id="screen5" class="screen">
+            <h2>🕊️ Вывод</h2>
+
+            <div class="character-wrapper">
+                <img src="kristina-holding.gif" alt="Кристина говорит">
+            </div>
+            <div class="speech-bubble">
+                <span class="name">Кристина:</span>
+                Псалом 68 показывает нам, что <strong>Христос исполнил Писание</strong> — от ревности о храме до крестных страданий. И даже падение Иуды было предсказано. Это напоминает нам: <strong>Бог верен Своему Слову</strong>. Всё, что Он сказал, исполнится.
+            </div>
+
+            <div class="conclusion-box">
+                <p>
+                    <strong>Главная истина:</strong> Божье Слово всегда исполняется — даже в самых разных событиях.
+                </p>
+                <div class="final-verse">
+                    «...надлежит исполниться всему, написанному о Мне в законе Моисеевом и в пророках и псалмах»<br>
+                    <span style="font-style: normal; font-weight: 600; color: #4a3520;">— Луки 24:44</span>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="secondary" onclick="goToStep(4)">⬅️ Назад</button>
+                <button class="secondary" onclick="resetAll()">🔄 Пройти заново</button>
+                <a href="https://ykazateli.github.io/psalm-109-priest-forever/" style="text-decoration: none; flex: 1; min-width: 140px;">
+                    <button style="width: 100%;">➡️ К Псалму 109</button>
+                </a>
+            </div>
+        </div>
+
+        <!-- ФУТЕР -->
+        <div class="footer">
+            <a href="https://vk.com/ykazateli_of_christ" target="_blank" class="studio-link">
+                🕯️ Исследуйте Писание вместе с «Указателями»
+            </a>
+            <span class="small-note">Серия «Христос в Псалмах» — урок 7</span>
+        </div>
+    </div>
+
+    <script>
+        // ============ СОПОСТАВЛЕНИЕ (клик + клик) ============
+        let selectedCard = null;
+        let matchedPairs = 0;
+        const totalPairs = 3;
+
+        const allCards = document.querySelectorAll('.match-card');
+        const toStep3Btn = document.getElementById('toStep3');
+
+        allCards.forEach(card => {
+            card.addEventListener('click', function() {
+                if (this.classList.contains('matched')) return;
+
+                if (!selectedCard) {
+                    allCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedCard = this;
+                    return;
+                }
+
+                if (selectedCard === this) {
+                    this.classList.remove('selected');
+                    selectedCard = null;
+                    return;
+                }
+
+                const selectedColumn = selectedCard.parentElement;
+                const currentColumn = this.parentElement;
+
+                if (selectedColumn === currentColumn) {
+                    allCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedCard = this;
+                    return;
+                }
+
+                if (selectedCard.dataset.id === this.dataset.id) {
+                    selectedCard.classList.remove('selected');
+                    selectedCard.classList.add('matched');
+                    this.classList.add('matched');
+                    matchedPairs++;
+                    selectedCard = null;
+
+                    if (matchedPairs === totalPairs) {
+                        toStep3Btn.disabled = false;
+                    }
+                } else {
+                    const firstCard = selectedCard;
+                    firstCard.classList.add('wrong');
+                    this.classList.add('wrong');
+
+                    setTimeout(() => {
+                        firstCard.classList.remove('wrong', 'selected');
+                        this.classList.remove('wrong');
+                    }, 400);
+
+                    selectedCard = null;
+                }
+            });
+        });
+
+        // ============ РАЗМЫШЛЕНИЕ ============
+        let answerVisible = false;
+
+        function toggleAnswer() {
+            const answer = document.getElementById('answerText');
+            const btn = document.querySelector('.reveal-btn');
+
+            if (!answerVisible) {
+                answer.classList.add('show');
+                btn.textContent = '🙈 Скрыть ответ';
+                answerVisible = true;
+            } else {
+                answer.classList.remove('show');
+                btn.textContent = '💡 Показать ответ';
+                answerVisible = false;
+            }
+        }
+
+        // ============ НАВИГАЦИЯ ============
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById('screen' + stepNumber).classList.add('active');
+            document.querySelector('.app-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function resetAll() {
+            allCards.forEach(card => {
+                card.classList.remove('matched', 'selected', 'wrong');
+            });
+            matchedPairs = 0;
+            selectedCard = null;
+            toStep3Btn.disabled = true;
+
+            if (answerVisible) {
+                toggleAnswer();
+            }
+
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>
